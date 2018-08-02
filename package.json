@@ -1,0 +1,24 @@
+{
+  "name": "Amazon-CLI",
+  "version": "1.0.0",
+  "description": "",
+  "main": "amazon.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dcdi22/Amazon-CLI.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dcdi22/Amazon-CLI/issues"
+  },
+  "homepage": "https://github.com/dcdi22/Amazon-CLI#readme",
+  "dependencies": {
+    "inquirer": "^6.0.0",
+    "mysql": "^2.16.0"
+  }
+}
