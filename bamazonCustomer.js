@@ -50,12 +50,14 @@ function promptUser() {
             for (var i = 0; i < res.length; i++) {
                 if (answer.quantity > res[i].stock_quantity) {
                     console.log("Sorry WE OUT");
+                    // reprompt
+                    reprompt();
                 } else {
-                    console.log(`Awesome we got enuf ${res[i].product_name} for you`)
+                    console.log(`Awesome we got enuf ${res[i].product_name}'s for you.`)
                     var qty = answer.quantity;
                     var item = res[i].product_name;
                     var newQty = res[i].stock_quantity - answer.quantity;
-                    var itemId = answer.item;
+                    var itemId = parseInt(answer.item);
                     //console.log(newQty, itemId);
                     fulfill(newQty, itemId, qty, item);
                 }
@@ -66,29 +68,47 @@ function promptUser() {
 
 function fulfill(newQty, itemId, qty, item) {
     inquirer.prompt([{
-        message: `Are you sure you want to purchase ${qty} ${item}'s??`,
+        message: `Are you sure you want to purchase ${qty} ${item}'s tho??`,
         type: "confirm",
         name: "confirmSale",
         default: true
     }]).then(function (answer) {
         if (answer.confirmSale) {
-            connection.query("UPDATE products SET ? WHERE ?", [])
-        }
-        else {
+            connection.query("UPDATE products SET ? WHERE ?", 
+            [
+                {
+                stock_quantity: newQty
+                },
+                {
+                    id: itemId
+                }
+            ], function (err, res) {
+                if (err) throw err;
+                console.log(`Stock has been updated to ${newQty}`)
+                console.log(res);
+                reprompt();
+            })
+            
+        } else {
             console.log("Probably for the best, what were you thinking?")
+            reprompt();
+        };
+        // reprompt
+        //reprompt();
+    });
+};
+
+function reprompt() {
+    inquirer.prompt([{
+        message: "Would you like to purchase something else?",
+        type: "confirm",
+        name: "reply"
+    }]).then(function(answer) {
+        if (answer.reply) {
+            promptUser();
+        } else {
+            console.log("Come again soon, buy my things please, I need to pay my rent!")
+            connection.end();
         }
     })
 }
-
-// function quantityAsk() {
-//     inquirer.prompt([{
-//         message: "How many would you like?",
-//         type: "input",
-//         name: "quantity"
-//     }]).then(function (answer) {
-//         connection.query(`SELECT stock_quantity FROM WHERE id = ${answer.item}`, function (err, res) {
-//             if (err) throw err;
-//             console.log(res);
-//         })
-//     })
-// }
