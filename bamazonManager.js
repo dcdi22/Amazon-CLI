@@ -58,6 +58,7 @@ function viewProducts() {
         }
         console.log("\n--------------------------------" + "\n");
         //promptUser();
+        reprompt();
     });
 
 };
@@ -69,6 +70,7 @@ function lowInv() {
         for (var i = 0; i < res.length; i++) {
             console.log(`LOW: ${res[i].product_name}`);
         };
+        reprompt();
     });
 };
 
@@ -76,8 +78,10 @@ function addInv() {
     connection.query("SELECT * FROM products", function (err, res) {
         if (err) throw err;
         var itemArr = [];
+        var itemObj = {};
         for (var i = 0; i < res.length; i++) {
             itemArr.push(res[i].product_name);
+            itemObj[res[i].product_name] = res[i];
         };
 
         inquirer.prompt([{
@@ -88,36 +92,80 @@ function addInv() {
         }, {
             message: "Great, now how much would you like to add to the inventory?",
             type: "input",
-            name: "qty"
-        }]).then(function(answer){
-            
-        })
-
-
-    })
-    // inquirer.prompt([{
-    //     message: "Which product would you like to add more inventory to? Please select by product ID.",
-    //     type: "input",
-    //     name: "itemId"
-    // },
-    // {
-    //     message: "Great, now how much would you like to add to the inventory?",
-    //     type: "input",
-    //     name: "qty"
-    // }]).then(function (answer){
-    //     var newQty = res.stock_quantity + answer.qty;
-    //     console.log(newQty);
-    //     connection.query("UPDATE products SET ? WHERE ?", 
-    //     [
-    //         {
-    //         stock_quantity: newQty
-    //         },
-    //         {
-    //             id: answer.itemId
-    //         }
-    //     ], function (err, res){
-    //         if (err) throw err;
-    //         console.log(res);
-    //     });
-    // });
+            name: "qty",
+            validate: function(value){
+                if(isNaN(value) == false){return true;}
+                else{return false;}
+              }
+        }]).then(function (answer) {
+            var newQty = parseInt(itemObj[answer.item].stock_quantity) + parseInt(answer.qty);
+            console.log(newQty);
+            connection.query("UPDATE products SET ? WHERE ?", [{
+                stock_quantity: newQty
+            }, {
+                product_name: answer.item
+            }], function (err, res) {
+                if (err) throw err;
+                console.log("Inventory Updated");
+                console.log(res);
+                reprompt();
+            });
+        });
+    });
 };
+
+function addProd() {
+    inquirer.prompt([{
+        message: "What is the name of the product you would add?",
+        type: "input",
+        name: "product"
+    }, {
+        message: "What deperatment does this product belong in?",
+        type: "input",
+        name: "dpmt"
+    }, {
+        message: "What is the selling price?",
+        type: "input",
+        name: "price",
+        validate: function(value){
+            if(isNaN(value) == false){return true;}
+            else{return false;}
+          }
+    }, {
+        message: "How much inventory would you like to start with?",
+        type: "input",
+        name: "qty",
+        validate: function(value){
+            if(isNaN(value) == false){return true;}
+            else{return false;}
+          }
+    }]).then(function(answer) {
+        console.log("HELLO");
+        connection.query("INSERT INTO products SET ?", {
+            product_name: answer.product,
+            department_name: answer.dpmt,
+            price: answer.price,
+            stock_quantity: answer.qty
+        }, function (err, res) {
+            if (err) throw err;
+            console.log(`Product ${answer.product} has been added to the store.`);
+            console.log(res);
+            reprompt();
+        });
+    });
+};
+
+function reprompt() {
+    inquirer.prompt([{
+        message: "Is there anything else you'd like to do?",
+        type: "confirm",
+        name: "reply"
+    }]).then(function(answer) {
+        if (answer.reply) {
+            promptUser();
+        } else {
+            console.log("Thanks boss dude, some back if you need to check on the business.");
+            connection.end();
+        }
+    })
+}

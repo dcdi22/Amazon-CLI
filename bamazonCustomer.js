@@ -36,12 +36,20 @@ function promptUser() {
     inquirer.prompt([{
             message: "What is the ID of the product you would like to buy?",
             type: "input",
-            name: "item"
+            name: "item",
+            validate: function(value){
+                if(isNaN(value) == false){return true;}
+                else{return false;}
+              }
         },
         {
             message: "How much would you like to purchase?",
             type: "input",
-            name: "quantity"
+            name: "quantity",
+            validate: function(value){
+                if(isNaN(value) == false){return true;}
+                else{return false;}
+              }
         }
     ]).then(function (answer) {
         connection.query("SELECT * FROM products WHERE id = ?", [answer.item], function (err, res) {
