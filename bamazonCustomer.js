@@ -24,7 +24,7 @@ function afterConnection() {
         console.log("\n--------------------------------" + "\n");
         //console.log(res)
         for (let i = 0; i < res.length; i++) {
-            console.log("\n" + res[i].id + " | " + res[i].product_name + " | " + res[i].department_name + " | " + res[i].price + " | " + res[i].stock_quantity);
+            console.log("\n" + res[i].id + " | " + res[i].product_name + " | " + res[i].department_name + " | $" + res[i].price + " | " + res[i].stock_quantity);
         }
         console.log("\n--------------------------------" + "\n");
         promptUser();
@@ -34,7 +34,7 @@ function afterConnection() {
 
 function promptUser() {
     inquirer.prompt([{
-            message: "What is the ID of the product you would like to buy?",
+            message: "What is the ID# of the product you would like to buy?",
             type: "input",
             name: "item",
             validate: function(value){
@@ -43,7 +43,7 @@ function promptUser() {
               }
         },
         {
-            message: "How much would you like to purchase?",
+            message: "How many units of this item would you like to purchase?",
             type: "input",
             name: "quantity",
             validate: function(value){
@@ -61,7 +61,7 @@ function promptUser() {
                     // reprompt
                     reprompt();
                 } else {
-                    console.log(`Awesome we got enuf ${res[i].product_name}'s for you.`)
+                    console.log(`\nAwesome we got enuf ${res[i].product_name}'s for you.\n`)
                     var qty = answer.quantity;
                     var item = res[i].product_name;
                     var newQty = res[i].stock_quantity - answer.quantity;
@@ -92,19 +92,30 @@ function fulfill(newQty, itemId, qty, item) {
                 }
             ], function (err, res) {
                 if (err) throw err;
-                console.log(`Stock has been updated to ${newQty}`)
-                console.log(res);
-                reprompt();
+                console.log(`\nAlrighty, stock has been updated to ${newQty} units left in my garage..uh I mean warehouse.`)
+                //console.log(res);
+                totalcosts(itemId, qty);
+                //reprompt();
             })
             
         } else {
-            console.log("Probably for the best, what were you thinking?")
+            console.log("\nProbably for the best, what were you thinking?\n")
             reprompt();
         };
         // reprompt
         //reprompt();
     });
 };
+
+function totalcosts(itemId, qty) {
+    
+    connection.query("SELECT * FROM products WHERE id = ?", [itemId], function (err, res) {
+        if (err) throw err;
+        var totalCost = res[0].price * parseInt(qty);
+        console.log("In total you just spent $" + totalCost.toFixed(2) + "! \nMan, how do you just have that kind of cash laying around.\n");
+        reprompt();
+    })
+}
 
 function reprompt() {
     inquirer.prompt([{
@@ -115,7 +126,7 @@ function reprompt() {
         if (answer.reply) {
             promptUser();
         } else {
-            console.log("Come again soon, buy my things please, I need to pay my rent!")
+            console.log("\nCome again soon, buy my things please, I need to pay my rent!\n")
             connection.end();
         }
     })
